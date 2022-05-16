@@ -13,7 +13,10 @@ void setUp(void)
     Pin_init(&miPinL,&miPuerto,NUM_PIN_L);
     Pin_init(&miPinH,&miPuerto,NUM_PIN_H);
 }
-
+void tearDown(void)
+{
+    
+}
 static void configura_analogico(void)
 {
     miPuerto.CRL = ~0UL;
