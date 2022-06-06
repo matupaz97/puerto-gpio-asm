@@ -36,6 +36,37 @@ endfun Pin_init
 
 defun Pin_configura
     // R0: self, R1: config
+    Push {R4-R6, LR}           // Guardo los registros en la pila
+    ands R2, R1, #0xF
+    cmp R2, #8
+    bne 0f
+    push {R0, R1}
+    lsrs R1, #4
+    bl Pin_escribe
+    pop {R0, R1}
+0:
+    ldr R2, [R0, #Pin__puerto] // R2: base del puerto
+    ldr R3, [R0, #Pin__numero] // R3: numero de pin
+    cmp R3, #7                 // Comparo para saber si utilizo CRL o CRH
+    bls 0f
+    mov R5, #8                 // En caso de usar CRH, le restamos 8 al numero de pin para utilizarlo como pin de CRH
+    mov R0, #CRH               // Le cargamos a R0 el offset correspondiente segun el caso
+    b 1f
+0:
+    mov R0, #CRL
+    mov R5, #0
+1:
+    ldr R6, [R2, R0]           // R6 sera el valor actual que posee el puerto
+    subs R3, R5
+    lsls R3, #2                // Multiplicamos el numero de pin por 4 debido a que cada pin utiliza 4 bits
+    movs R4, #0xF              // R4: Mascara
+    lsls R4, R3                // colocamos 1 en cada bit del pin elegido
+    bics R6, R4                // Borramos solamente los bits del pin elegido
+    ands R1, #0xF
+    lsls R1, R3                // Movemos la configuracion para poder aplicar la mascara y solo cambiar la configuracion de nuestro pin
+    orrs R6, R1
+    str R0, [R2, R0]           // Guardamos el valor de la configuracion en el lugar correspondiente
+    Pop {R4-R6, PC} // Devuelvo al los registros sus valores previos
     bx lr
 endfun Pin_configura
 
@@ -43,6 +74,16 @@ endfun Pin_configura
 
 defun Pin_escribe
     // R0: self, R1: valor
+    ldr R2, [R0, #Pin__puerto] // R2: base del puerto
+    ldr R3, [R0, #Pin__numero] // R3: numero de pin
+    mov R0, #1
+    lsls R0, R3
+    cbz R1, 0f
+    str R0, [R2, #BSRR]
+    b 1f
+0:
+    str R0, [R2, #BRR]
+1:
     bx lr
 endfun Pin_escribe
 
