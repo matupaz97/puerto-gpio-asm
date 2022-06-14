@@ -89,11 +89,48 @@ endfun Pin_escribe
 
 defun Pin_lee
     // R0: self
+    ldr R1,[R0,#Pin__puerto]
+    ldr R2,[R0,#Pin__numero]
+
+    mov R3, #1 //Movemos el valor 1 al registro R3
+    lsls R3, R2 //Movemos ese valor 1 al pin que vamos a leer
+    ldr R0, [R1, #IDR] //Leemos el valor de la entrada correspondiente al puerto gpio que usaremos, y lo guardamos en R0
+    tst R0, R3 //Si es "1", saltara para cambiar su valor a "0"
+    beq 0f
+
+    mov R0, #1 //Si llegase a ser "0" el valor de esa entrada, entonces lo cambio a "1"
+
+    b 1f //Salto al final del programa
+0:
+
+    mov R0, #0
+    
+1:
+
     bx lr
-    // R0: valor
+    // R0: valor 
 endfun Pin_lee
+
+
 defun Pin_leeSalida
     // R0: self
+    ldr R1,[R0,#Pin__puerto]
+    ldr R2,[R0,#Pin__numero]
+
+    mov R3, #1
+    lsls R3, R2
+    ldr R0,[R1, #ODR]
+    tst R0, R3 
+    beq 0f  
+
+    mov R0, #1
+
+    b final
+0:
+
+    mov R0,#0
+final:
+
     bx lr
     // R0: valor
 endfun Pin_leeSalida
